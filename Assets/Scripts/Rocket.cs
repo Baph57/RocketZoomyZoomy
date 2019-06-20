@@ -5,6 +5,10 @@ using UnityEngine;
 
 public class Rocket : MonoBehaviour
 {
+    //member variables
+    [SerializeField] float rotationForce = 100f;
+    [SerializeField] float thrustForce = 2f;
+
     //accessing the rigidbody component on rocket
     //that we added using the unity GUI
     Rigidbody rigidBody;
@@ -33,7 +37,7 @@ public class Rocket : MonoBehaviour
         {
             //adding force relative to the object's direction
             //Vector3 struct used to add force upwards
-            rigidBody.AddRelativeForce(Vector3.up);
+            rigidBody.AddRelativeForce(Vector3.up * thrustForce);
 
             if (!audioSource.isPlaying) //method to allow no overlapping play
             {
@@ -51,19 +55,38 @@ public class Rocket : MonoBehaviour
 
         rigidBody.freezeRotation = true; //taking control of rotation manually
 
+        
+        float rotationSpeedThisFrame = rotationForce * Time.deltaTime;
+
         if (Input.GetKey(KeyCode.A))
         {
             //permanent unity object/component
             //Vector3 allows for adding force forward, still a struct
-            transform.Rotate(Vector3.forward);
+
+            transform.Rotate(Vector3.forward * rotationSpeedThisFrame);
         }
         else if (Input.GetKey(KeyCode.D))
         {
-            print("D - Right");
-            transform.Rotate(-Vector3.forward);
+
+            transform.Rotate(-Vector3.forward * rotationSpeedThisFrame);
         }
 
         rigidBody.freezeRotation = false; //resume physics control of rotation
     }
 
+    private void OnCollisionEnter(Collision collision)
+    {
+        //print("Collided");
+        switch (collision.gameObject.tag)//switch statement based off tag
+        {
+            case "Friendly":
+                print("friendly contact");
+                break;
+
+            default:
+                print("unfriendly contact");
+                //TODO: kill player
+                break;
+        }
+    }
 }
