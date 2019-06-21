@@ -2,17 +2,25 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement; //scene manager / environment
 
 public class Rocket : MonoBehaviour
 {
     //member variables
     [SerializeField] float rotationForce = 100f;
-    [SerializeField] float thrustForce = 2f;
+    [SerializeField] float thrustForce = 1800f;
 
     //accessing the rigidbody component on rocket
     //that we added using the unity GUI
     Rigidbody rigidBody;
     AudioSource audioSource;
+
+    //game state
+    enum State { alive, dying, transcending };
+    //using a variable to store one of the values of our above enumerator
+    //this is still considered a member variable and is initializing the state
+    // as being alive.
+    State state = State.alive;
 
 
     // Start is called before the first frame update
@@ -30,14 +38,61 @@ public class Rocket : MonoBehaviour
         Rotation();
     }
 
+
+    //game controller (based off tags in game)
+    private void OnCollisionEnter(Collision collision)
+    {
+        //print("Collided");
+        switch (collision.gameObject.tag)//switch statement based off tag
+        {
+            case "Friendly"://do nothing
+                print("friendly contact");
+                break;
+
+            case "Finish":
+                print("Hit Finish");
+                //state change
+                state = State.transcending;
+                //LevelController(1);
+                //We are using Invoke to delay the function execution, like a timeout
+                //This method requires functions to be called as string types however
+                Invoke("LevelController 0", 1f);
+                break;
+            default:
+                print("unfriendly contact");
+                Invoke("LevelController 1", 1f);
+
+                //LevelController(0);
+                //TODO: kill player
+                break;
+        }
+    }
+
+    private void LevelController(int level)
+    {
+        SceneManager.LoadScene(level);
+    }
+
+    //player controls
     private void Thrust()
     {
         //GetKey() - auto / GetKeyDown()/Up() -for single fire usage
-        if (Input.GetKey(KeyCode.Space)) //can trust while rotating
+        if (Input.GetKey(KeyCode.Space) || Input.GetKey(KeyCode.W)) //can trust while rotating
         {
             //adding force relative to the object's direction
             //Vector3 struct used to add force upwards
             rigidBody.AddRelativeForce(Vector3.up * thrustForce);
+
+            if (!audioSource.isPlaying) //method to allow no overlapping play
+            {
+                audioSource.Play();
+            }
+        }
+        else if (Input.GetKey(KeyCode.S)) //can trust while rotating
+        {
+            //adding force relative to the object's direction
+            //Vector3 struct used to add force upwards
+            rigidBody.AddRelativeForce(Vector3.down * thrustForce);
 
             if (!audioSource.isPlaying) //method to allow no overlapping play
             {
@@ -74,19 +129,4 @@ public class Rocket : MonoBehaviour
         rigidBody.freezeRotation = false; //resume physics control of rotation
     }
 
-    private void OnCollisionEnter(Collision collision)
-    {
-        //print("Collided");
-        switch (collision.gameObject.tag)//switch statement based off tag
-        {
-            case "Friendly":
-                print("friendly contact");
-                break;
-
-            default:
-                print("unfriendly contact");
-                //TODO: kill player
-                break;
-        }
-    }
 }
