@@ -36,14 +36,23 @@ public class Rocket : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Thrust();
-        Rotation();
+        if (state == State.alive)
+        {
+            Thrust();
+            Rotation();
+        }
+        else
+        {
+            audioSource.Stop();
+        }
     }
 
 
     //game controller (based off tags in game)
     private void OnCollisionEnter(Collision collision)
     {
+        if(state != State.alive) { return; }//prevents additional return statements/evaluations
+
         //print("Collided");
         switch (collision.gameObject.tag)//switch statement based off tag
         {
