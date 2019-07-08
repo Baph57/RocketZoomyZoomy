@@ -9,6 +9,7 @@ public class Rocket : MonoBehaviour
     //member variables
     [SerializeField] float rotationForce = 100f;
     [SerializeField] float thrustForce = 1800f;
+    [SerializeField] string whatLevelWeAreOn = "FirstLevel";
 
     //accessing the rigidbody component on rocket
     //that we added using the unity GUI
@@ -17,6 +18,7 @@ public class Rocket : MonoBehaviour
 
     //game state
     enum State { alive, dying, transcending };
+
     //using a variable to store one of the values of our above enumerator
     //this is still considered a member variable and is initializing the state
     // as being alive.
@@ -51,26 +53,32 @@ public class Rocket : MonoBehaviour
 
             case "Finish":
                 print("Hit Finish");
+                whatLevelWeAreOn = "SecondLevel";//creating member variable to store level
                 //state change
                 state = State.transcending;
                 //LevelController(1);
                 //We are using Invoke to delay the function execution, like a timeout
                 //This method requires functions to be called as string types however
-                Invoke("LevelController 0", 1f);
+                Invoke("LevelController", 1f);
                 break;
+
             default:
                 print("unfriendly contact");
-                Invoke("LevelController 1", 1f);
+                whatLevelWeAreOn = "FirstLevel";//member variable storing level
+                state = State.dying;
 
+                Invoke("LevelController", 1f);
+                
                 //LevelController(0);
                 //TODO: kill player
                 break;
         }
     }
 
-    private void LevelController(int level)
+    private void LevelController()
     {
-        SceneManager.LoadScene(level);
+        //string levelToChangeTo = whatLevelWeAreOn.ToString();
+        SceneManager.LoadScene(whatLevelWeAreOn);
     }
 
     //player controls
