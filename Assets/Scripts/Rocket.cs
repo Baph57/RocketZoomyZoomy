@@ -9,6 +9,7 @@ public class Rocket : MonoBehaviour
     //member variables
     [SerializeField] float rotationForce = 100f;
     [SerializeField] float thrustForce = 1800f;
+    //I believe this could work as an int, need to call LoadScene starting at 0 index *MAYBE*
     [SerializeField] string whatLevelWeAreOn = "FirstLevel";
 
     //accessing the rigidbody component on rocket
