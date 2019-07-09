@@ -17,6 +17,10 @@ public class Rocket : MonoBehaviour
     [SerializeField] ParticleSystem engineParticleFX;
     [SerializeField] ParticleSystem successParticleFX;
     [SerializeField] ParticleSystem dyingParticleFX;
+    //Level member variables
+    [SerializeField] float delayBetweenStageSwitch = 2f;
+    //debugging member variable
+    [SerializeField] bool debugCollisionToggle;
 
     //game controller member variable
     //I believe this could work as an int, need to call LoadScene starting at 0 index *MAYBE*
@@ -47,12 +51,29 @@ public class Rocket : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        //hotkeys designed to streamline testing game
+        DebugKeys();
+
         if (state == State.alive)
         {
             Thrust();
             Rotation();
         }
     }
+
+    void DebugKeys()
+    {
+        if (Input.GetKey(KeyCode.L))
+        {
+            //TODO: have this actually load the right level
+            LevelController();
+        }
+        if (Input.GetKey(KeyCode.C))
+        {
+            debugCollisionToggle = !debugCollisionToggle;
+        }
+    }
+
 
 
     //game controller (based off tags in game)
@@ -71,7 +92,10 @@ public class Rocket : MonoBehaviour
                 break;
 
             default:
+                if (!debugCollisionToggle)
+                {
                 DeathConditionMet();
+                }
                 break;
         }
     }
@@ -83,7 +107,8 @@ public class Rocket : MonoBehaviour
         state = State.dying;
         audioSource.Stop();//stops all sounds before
         audioSource.PlayOneShot(dyingSound);//playing the death sound
-        Invoke("LevelController", 2f);
+        dyingParticleFX.Play();
+        Invoke("LevelController", delayBetweenStageSwitch);
     }
 
     private void SuccessConditionMet()
@@ -94,9 +119,10 @@ public class Rocket : MonoBehaviour
         state = State.transcending;
         audioSource.Stop();
         audioSource.PlayOneShot(successSound);
+        successParticleFX.Play();
         //We are using Invoke to delay the function execution, like a timeout
         //This method requires functions to be called as string types however
-        Invoke("LevelController", 1f);
+        Invoke("LevelController", delayBetweenStageSwitch);
     }
 
     private void LevelController()
@@ -122,7 +148,7 @@ public class Rocket : MonoBehaviour
         else
         {
             audioSource.Stop();
-            //engineParticleFX.Stop();
+            engineParticleFX.Stop();
         }
     }
 
@@ -130,7 +156,7 @@ public class Rocket : MonoBehaviour
     {
         //adding force relative to the object's direction
         //Vector3 struct used to add force upwards
-        rigidBody.AddRelativeForce(Vector3.down * thrustForce);
+        rigidBody.AddRelativeForce(Vector3.down * thrustForce * Time.deltaTime);
         //engineParticleFX.Play();
 
         if (!audioSource.isPlaying) //method to allow no overlapping play
@@ -143,7 +169,7 @@ public class Rocket : MonoBehaviour
     {
         //adding force relative to the object's direction
         //Vector3 struct used to add force upwards
-        rigidBody.AddRelativeForce(Vector3.up * thrustForce);
+        rigidBody.AddRelativeForce(Vector3.up * thrustForce * Time.deltaTime);
         //engineParticleFX.Play();
 
         if (!audioSource.isPlaying) //method to allow no overlapping play
