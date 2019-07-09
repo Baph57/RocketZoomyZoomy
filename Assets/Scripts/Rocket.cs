@@ -6,9 +6,19 @@ using UnityEngine.SceneManagement; //scene manager / environment
 
 public class Rocket : MonoBehaviour
 {
-    //member variables
+    //rocket member variables
     [SerializeField] float rotationForce = 100f;
     [SerializeField] float thrustForce = 1800f;
+    //AudioFX
+    [SerializeField] AudioClip primaryEngineSound;
+    [SerializeField] AudioClip successSound;
+    [SerializeField] AudioClip dyingSound;
+    //ParticleFX
+    [SerializeField] ParticleSystem engineParticleFX;
+    [SerializeField] ParticleSystem successParticleFX;
+    [SerializeField] ParticleSystem dyingParticleFX;
+
+    //game controller member variable
     //I believe this could work as an int, need to call LoadScene starting at 0 index *MAYBE*
     [SerializeField] string whatLevelWeAreOn = "FirstLevel";
 
@@ -42,10 +52,6 @@ public class Rocket : MonoBehaviour
             Thrust();
             Rotation();
         }
-        else
-        {
-            audioSource.Stop();
-        }
     }
 
 
@@ -54,7 +60,6 @@ public class Rocket : MonoBehaviour
     {
         if(state != State.alive) { return; }//prevents additional return statements/evaluations
 
-        //print("Collided");
         switch (collision.gameObject.tag)//switch statement based off tag
         {
             case "Friendly"://do nothing
@@ -62,27 +67,36 @@ public class Rocket : MonoBehaviour
                 break;
 
             case "Finish":
-                print("Hit Finish");
-                whatLevelWeAreOn = "SecondLevel";//creating member variable to store level
-                //state change
-                state = State.transcending;
-                //LevelController(1);
-                //We are using Invoke to delay the function execution, like a timeout
-                //This method requires functions to be called as string types however
-                Invoke("LevelController", 1f);
+                SuccessConditionMet();
                 break;
 
             default:
-                print("unfriendly contact");
-                whatLevelWeAreOn = "FirstLevel";//member variable storing level
-                state = State.dying;
-
-                Invoke("LevelController", 1f);
-                
-                //LevelController(0);
-                //TODO: kill player
+                DeathConditionMet();
                 break;
         }
+    }
+
+    private void DeathConditionMet()
+    {
+        print("unfriendly contact");
+        whatLevelWeAreOn = "FirstLevel";//member variable storing level
+        state = State.dying;
+        audioSource.Stop();//stops all sounds before
+        audioSource.PlayOneShot(dyingSound);//playing the death sound
+        Invoke("LevelController", 2f);
+    }
+
+    private void SuccessConditionMet()
+    {
+        print("Hit Finish");
+        whatLevelWeAreOn = "SecondLevel";//changing member variable
+        //state change
+        state = State.transcending;
+        audioSource.Stop();
+        audioSource.PlayOneShot(successSound);
+        //We are using Invoke to delay the function execution, like a timeout
+        //This method requires functions to be called as string types however
+        Invoke("LevelController", 1f);
     }
 
     private void LevelController()
@@ -97,29 +111,44 @@ public class Rocket : MonoBehaviour
         //GetKey() - auto / GetKeyDown()/Up() -for single fire usage
         if (Input.GetKey(KeyCode.Space) || Input.GetKey(KeyCode.W)) //can trust while rotating
         {
-            //adding force relative to the object's direction
-            //Vector3 struct used to add force upwards
-            rigidBody.AddRelativeForce(Vector3.up * thrustForce);
-
-            if (!audioSource.isPlaying) //method to allow no overlapping play
-            {
-                audioSource.Play();
-            }
+            engineParticleFX.Play();
+            ApplyThrustNorth();
         }
         else if (Input.GetKey(KeyCode.S)) //can trust while rotating
         {
-            //adding force relative to the object's direction
-            //Vector3 struct used to add force upwards
-            rigidBody.AddRelativeForce(Vector3.down * thrustForce);
-
-            if (!audioSource.isPlaying) //method to allow no overlapping play
-            {
-                audioSource.Play();
-            }
+            engineParticleFX.Play();
+            ApplyThrustSouth();
         }
         else
         {
             audioSource.Stop();
+            //engineParticleFX.Stop();
+        }
+    }
+
+    private void ApplyThrustSouth()
+    {
+        //adding force relative to the object's direction
+        //Vector3 struct used to add force upwards
+        rigidBody.AddRelativeForce(Vector3.down * thrustForce);
+        //engineParticleFX.Play();
+
+        if (!audioSource.isPlaying) //method to allow no overlapping play
+        {
+            audioSource.PlayOneShot(primaryEngineSound);
+        }
+    }
+
+    private void ApplyThrustNorth()
+    {
+        //adding force relative to the object's direction
+        //Vector3 struct used to add force upwards
+        rigidBody.AddRelativeForce(Vector3.up * thrustForce);
+        //engineParticleFX.Play();
+
+        if (!audioSource.isPlaying) //method to allow no overlapping play
+        {
+            audioSource.PlayOneShot(primaryEngineSound);
         }
     }
 
