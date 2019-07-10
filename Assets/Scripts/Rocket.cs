@@ -210,18 +210,19 @@ public class Rocket : MonoBehaviour
 
         if (Input.GetKey(KeyCode.A))
         {
-            //permanent unity object/component
-            //Vector3 allows for adding force forward, still a struct
-
-            transform.Rotate(Vector3.forward * rotationSpeedThisFrame);
+            RotationHelper(rotationSpeedThisFrame);
         }
         else if (Input.GetKey(KeyCode.D))
         {
 
-            transform.Rotate(-Vector3.forward * rotationSpeedThisFrame);
+            RotationHelper(-rotationSpeedThisFrame);
         }
-
-        rigidBody.freezeRotation = false; //resume physics control of rotation
     }
 
+    private void RotationHelper(float rotationSpeedThisFrame)
+    {
+        rigidBody.freezeRotation = true; //taking control of rotation manually
+        transform.Rotate(Vector3.forward * rotationSpeedThisFrame);
+        rigidBody.freezeRotation = false;
+    }
 }
