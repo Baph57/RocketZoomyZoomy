@@ -24,7 +24,7 @@ public class Rocket : MonoBehaviour
 
     //game controller member variable
     //I believe this could work as an int, need to call LoadScene starting at 0 index *MAYBE*
-    [SerializeField] string whatLevelWeAreOn = "FirstLevel";
+    [SerializeField] int currentSceneIndex;
 
     //accessing the rigidbody component on rocket
     //that we added using the unity GUI
@@ -46,14 +46,19 @@ public class Rocket : MonoBehaviour
         //using GetComponent to assign rigidBody to the actual component
         rigidBody = GetComponent<Rigidbody>();
         audioSource = GetComponent<AudioSource>();
+
+        //current level - GetActiveScene not allowed inside MonoBehaviour
+        currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
     }
 
     // Update is called once per frame
     void Update()
     {
         //hotkeys designed to streamline testing game
+        if (Debug.isDebugBuild)
+        {
         DebugKeys();
-
+        }
         if (state == State.alive)
         {
             Thrust();
@@ -65,7 +70,9 @@ public class Rocket : MonoBehaviour
     {
         if (Input.GetKey(KeyCode.L))
         {
+            //currentSceneIndex++;
             //TODO: have this actually load the right level
+            SuccessConditionMet();
             LevelController();
         }
         if (Input.GetKey(KeyCode.C))
@@ -92,7 +99,7 @@ public class Rocket : MonoBehaviour
                 break;
 
             default:
-                if (!debugCollisionToggle)
+                if (!debugCollisionToggle)//debug key check, should collisions register?
                 {
                 DeathConditionMet();
                 }
@@ -103,7 +110,7 @@ public class Rocket : MonoBehaviour
     private void DeathConditionMet()
     {
         print("unfriendly contact");
-        whatLevelWeAreOn = "FirstLevel";//member variable storing level
+        currentSceneIndex = 0;//member variable storing level
         state = State.dying;
         audioSource.Stop();//stops all sounds before
         audioSource.PlayOneShot(dyingSound);//playing the death sound
@@ -114,7 +121,7 @@ public class Rocket : MonoBehaviour
     private void SuccessConditionMet()
     {
         print("Hit Finish");
-        whatLevelWeAreOn = "SecondLevel";//changing member variable
+        currentSceneIndex++;//changing member variable
         //state change
         state = State.transcending;
         audioSource.Stop();
@@ -127,8 +134,23 @@ public class Rocket : MonoBehaviour
 
     private void LevelController()
     {
+        //this stores the current level's index in an integer
+        //every game has a build order for scenes! Manipulate like arrays!
+        
+        //var baseLevel = SceneManager.GetSceneByBuildIndex(0); woops, WET code
+        if(currentSceneIndex == SceneManager.sceneCountInBuildSettings)
+        {
+            //print(desiredNextLevel + " desired next level ");
+            print(SceneManager.sceneCountInBuildSettings + "scene count");
+            //desiredNextLevel = 0;
+            print(currentSceneIndex + " CURSCEINDX");
+            currentSceneIndex = 0;
+        }
         //string levelToChangeTo = whatLevelWeAreOn.ToString();
-        SceneManager.LoadScene(whatLevelWeAreOn);
+        //TODO: Refactoring changed the behavior of 'currentSceneIndex'
+        //It's no longer the currentScene, but rather the variable controller
+        //for level switching
+        SceneManager.LoadScene(currentSceneIndex);
     }
 
     //player controls
