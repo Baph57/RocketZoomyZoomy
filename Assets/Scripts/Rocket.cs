@@ -205,17 +205,14 @@ public class Rocket : MonoBehaviour
 
         rigidBody.freezeRotation = true; //taking control of rotation manually
 
-        
-        float rotationSpeedThisFrame = rotationForce * Time.deltaTime;
-
         if (Input.GetKey(KeyCode.A))
         {
-            RotationHelper(rotationSpeedThisFrame);
+            RotationHelper(rotationForce * Time.deltaTime);
         }
         else if (Input.GetKey(KeyCode.D))
         {
 
-            RotationHelper(-rotationSpeedThisFrame);
+            RotationHelper(-rotationForce * Time.deltaTime);
         }
     }
 
